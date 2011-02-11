@@ -1,0 +1,8 @@
+.autotest
+History.txt
+Manifest.txt
+README.txt
+Rakefile
+bin/image_corrupter
+lib/image_corrupter.rb
+test/test_image_corrupter.rb
