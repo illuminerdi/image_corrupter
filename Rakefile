@@ -4,7 +4,7 @@ require 'rubygems'
 require 'hoe'
 
 Hoe.spec 'image_corrupter' do
-  # developer('FIX', 'FIX@example.com')
+  developer('Joshua Clingenpeel', 'joshua.clingenpeel@gmail.com')
 
   # self.rubyforge_name = 'image_corrupterx' # if different than 'image_corrupter'
 end

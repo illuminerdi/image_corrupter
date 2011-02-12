@@ -1,18 +1,24 @@
 = image_corrupter
 
-* FIX (url)
+* http://illuminerdi.com
 
 == DESCRIPTION:
 
-FIX (describe your package)
+Takes an image and corrupts it. Glitch art FTW.
+
+Special thanks to @robsheridan for the idea. See more at http://www.rob-sheridan.com/TSN/
 
 == FEATURES/PROBLEMS:
 
-* FIX (list of features or problems)
+* Takes images, corrupts them.
+* Supports jpg currently. working on other formats (the point is corruption, not destruction).
 
 == SYNOPSIS:
 
-  FIX (code sample of usage)
+>> require 'image_corrupter'
+>> corrupter = ImageCorrupter.new('./some_image.jpg')
+>> corrupter.corrupt
+#=> ./some_image_corrupted.jpg
 
 == REQUIREMENTS:
 
