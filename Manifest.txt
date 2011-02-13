@@ -2,6 +2,7 @@
 History.txt
 Manifest.txt
 README.txt
+README.rdoc
 Rakefile
 bin/image_corrupter
 lib/image_corrupter.rb
