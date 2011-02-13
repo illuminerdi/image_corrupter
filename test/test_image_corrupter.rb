@@ -4,6 +4,8 @@ require "image_corrupter"
 class TestImageCorrupter < Test::Unit::TestCase
   SCRIPT_DIR = File.expand_path(File.dirname(__FILE__))
   IMAGE_TEST_FILE = "#{SCRIPT_DIR}/josh_forehead.jpg"
+  IMAGE_TEST_START_BYTE = 741
+  IMAGE_TEST_CORRUPTION_FILE = "#{SCRIPT_DIR}/corruption_text_small.txt"
   IMAGE_TEST_FILE_OUT = "#{SCRIPT_DIR}/josh_forehead_corrupted.jpg"
 
   def setup
@@ -117,6 +119,63 @@ class TestImageCorrupter < Test::Unit::TestCase
     @corrupter.corrupt
 
     assert @corrupter.corrupted_file_bytes != randomized.corrupted_file_bytes
+  end
+
+  def test_interval_is_2_when_set_to_0_or_1
+    corrupter = ImageCorrupter.new(IMAGE_TEST_FILE, :interval => 0)
+    options = corrupter.options
+    assert_equal 2, options[:interval]
+
+    corrupter = ImageCorrupter.new(IMAGE_TEST_FILE, :interval => 1)
+    options = corrupter.options
+    assert_equal 2, options[:interval]
+  end
+
+  def test_corruption_should_not_happen_before_the_start_bit
+    corrupter = ImageCorrupter.new(IMAGE_TEST_FILE, :interval => 0)
+    corrupter.corrupt
+
+    actual = corrupter.corrupted_file_bytes.index('J')
+    assert actual >= IMAGE_TEST_START_BYTE, "Expected start bit at #{IMAGE_TEST_START_BYTE}, instead was #{actual}"
+  end
+
+  def test_corruption_should_not_exist_past_the_end_of_file
+    corrupter = ImageCorrupter.new(IMAGE_TEST_FILE, :interval => @corrupter.file_bytes.size-(IMAGE_TEST_START_BYTE+5))
+    corrupter.corrupt
+    @corrupter.corrupt
+
+    assert_equal @corrupter.corrupted_file_bytes.size, corrupter.corrupted_file_bytes.size
+  end
+
+  def test_corruption_should_not_happen_if_interval_is_beyond_file_bytes_size
+    assert_raise(Exception, "No exception thrown for interval of #{@corrupter.file_bytes.size}") {
+      ImageCorrupter.new(IMAGE_TEST_FILE, :interval => @corrupter.file_bytes.size)
+    }
+  end
+
+  def test_corruption_takes_a_corruption_file
+    corrupter = ImageCorrupter.new(IMAGE_TEST_FILE,
+      :corruption_file => IMAGE_TEST_CORRUPTION_FILE,
+      :corruption_separator => /\n/)
+    options = corrupter.options
+    assert_instance_of(Array, options[:corruption_text])
+    assert_equal 3, options[:corruption_text].size
+  end
+
+  def test_corruption_with_a_custom_separator_on_a_corruption_file
+    corrupter = ImageCorrupter.new(IMAGE_TEST_FILE,
+      :corruption_file => IMAGE_TEST_CORRUPTION_FILE,
+      :corruption_separator => /\s/)
+
+    assert_instance_of(Array, corrupter.options[:corruption_text])
+    assert_equal 14, corrupter.options[:corruption_text].size
+  end
+
+  def test_corruption_with_a_nil_custom_separator_on_a_corruption_file
+    corrupter = ImageCorrupter.new(IMAGE_TEST_FILE,
+      :corruption_file => IMAGE_TEST_CORRUPTION_FILE)
+
+    assert_instance_of(String, corrupter.options[:corruption_text])
   end
 
   def test_to_file

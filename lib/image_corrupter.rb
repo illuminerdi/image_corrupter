@@ -4,10 +4,12 @@ class ImageCorrupter
   DEFAULT_OPTIONS = {
     interval: 5000,
     occurrences: 1,
-    custom_text: "JOSHUA OWNZ j00 ALL!!!",
-    random: false
+    corruption_text: "JOSHUA OWNZ j00 ALL!!!",
+    random: false,
+    corruption_separator: nil
   }
   attr_accessor :file_name, :out_file_name, :file_bytes, :corrupted_file_bytes
+  attr_reader :options
 
   Struct.new("InjectionPoint", :start, :value)
 
@@ -16,8 +18,8 @@ class ImageCorrupter
     @file_bytes = open(@file_name).each_byte.to_a
     @corrupted_file_bytes = []
     @out_file_name = @file_name.gsub(/\.jpg/, "_corrupted.jpg")
-    parse_options(options)
     analyze_photo
+    parse_options(options)
   end
 
   def corrupt
@@ -53,30 +55,38 @@ class ImageCorrupter
 
     def injection_points
       step = @options[:interval]
-      injecting = @options[:custom_text]
+      injecting = @options[:corruption_text]
       points = []
       (1..@options[:occurrences]).each {|i|
-        index = @options[:random] ? random_index : step * i
-        iter_inject = @options[:custom_text].kind_of?(Array) ? injecting[(i % injecting.size)-1] : injecting
-        points << Struct::InjectionPoint.new(index, iter_inject[0...(@options[:chunk_size] || iter_inject.length)])
+        index = @options[:random] ? random_index : step * i + @photo[:start_byte]
+        iter_inject = injecting.kind_of?(Array) ? injecting[(i % injecting.size)-1] : injecting
+        actual_length = @options[:chunk_size] || iter_inject.length
+        if index + actual_length >= @photo[:end_of_image]
+          actual_length = @photo[:end_of_image]-index
+        end
+        points << Struct::InjectionPoint.new(index, iter_inject[0...actual_length])
       }
       points
     end
 
     def random_index
-      rand(@photo[:end_of_img]-@photo[:start_byte]) + @photo[:start_byte]
+      rand(@photo[:end_of_image]-@photo[:start_byte]) + @photo[:start_byte]
     end
 
     def parse_options(options = {})
       @options = DEFAULT_OPTIONS.merge(options)
-      unless(@options[:corruption_text_file].nil?)
-
+      @options[:interval] = 2 if @options[:interval] < 2
+      if @options[:interval] > @photo[:end_of_image]
+        raise Exception.new "Interval beyond file size"
+      end
+      unless(@options[:corruption_file].nil?)
+        temp = open(@options[:corruption_file]).read
+        @options[:corruption_text] = @options[:corruption_separator].nil? ? temp : temp.split(@options[:corruption_separator])
       end
     end
 
     def analyze_photo
-      @photo = {}
-      @photo[:restart_points] = []
+      @photo = {restart_points: []}
       file_bytes.each_with_index {|b,i|
         if b == 0xFF
           case file_bytes[i+1]
@@ -87,7 +97,7 @@ class ImageCorrupter
             when 0xD0..0xD7
               @photo[:restart_points] << i+2
             when 0xD9
-              @photo[:end_of_img] = i+2
+              @photo[:end_of_image] = i
           end
         end
       }
