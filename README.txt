@@ -1,38 +1,65 @@
 = image_corrupter
 
+* http://github.com/illuminerdi/image_corrupter
 * http://illuminerdi.com
+
 
 == DESCRIPTION:
 
-Takes an image and corrupts it. Glitch art FTW.
+Takes an image and corrupts it, inserting plain text in place of bytecode. The effect is basically a recognizable image with glitches and noise added. See an example:
 
-Special thanks to @robsheridan for the idea. See more at http://www.rob-sheridan.com/TSN/
+* Before: http://yfrog.com/h7imttbj
+* After: http://yfrog.com/h3wwmujj
+* Even Coolier: http://yfrog.com/h2qo6xwj
+
+Glitch art FTW!
+
+Special thanks to {@rob_sheridan}[http://twitter.com/rob_sheridan] for the idea. See more at http://www.rob-sheridan.com/TSN/
 
 == FEATURES/PROBLEMS:
 
 * Takes images, corrupts them.
 * Supports jpg currently. working on other formats (the point is corruption, not destruction).
+* Fairly deep customization
+* TDD
+* I really didn't know anything about JPEG before I started this, and I'm sure I'm screwing something up important.
 
 == SYNOPSIS:
 
->> require 'image_corrupter'
->> corrupter = ImageCorrupter.new('./some_image.jpg')
->> corrupter.corrupt
-#=> ./some_image_corrupted.jpg
+  >> # Simple usage
+  >> require 'image_corrupter'
+  >> corrupter = ImageCorrupter.new("./some_image.jpg")
+  >> corrupter.corrupt
+  >> corrupter.to_file
+  #=> ./some_image_corrupted.jpg
+
+  >> # Simpler usage
+  >> ImageCorrupter.corrupt("./some_image.jpg")
+  #=> ./some_image_corrupted.jpg
+
+  >> # Totally fun usage
+  >> corrupter = ImageCorrupter.new("./some_image.jpg", :corruption_text => %w(FOO! BAR! BAZ!), :occurrences => 23, :random => true)
+
+  >> # Corrupt and corrupt and corrupt again!
+  >> corrupter = ImageCorrupter.new("./some_image.jpg", :occurrences => 5, :random => true)
+  >> corrupter.corrupt!.corrupt!.corrupt!.to_file
+
+  >> # Works with external files, too
+  >> corruptor = ImageCorrupter.new("./some_image.jpg", :corruption_file => "./some_corruption_text", :corruption_separator => /\n/)
 
 == REQUIREMENTS:
 
-* FIX (list of requirements)
+* ruby 1.9.2
 
 == INSTALL:
 
-* FIX (sudo gem install, anything else)
+* sudo gem install image_corrupter
 
 == LICENSE:
 
 (The MIT License)
 
-Copyright (c) 2011 FIX
+Copyright (c) 2011 Joshua Clingenpeel
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the

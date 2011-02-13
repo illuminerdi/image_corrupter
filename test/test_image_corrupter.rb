@@ -1,7 +1,7 @@
 require "test/unit"
 require "image_corrupter"
 
-class TestImageCorrupter < Test::Unit::TestCase
+class TestImageCorrupter < Test::Unit::TestCase # :nodoc:
   SCRIPT_DIR = File.expand_path(File.dirname(__FILE__))
   IMAGE_TEST_FILE = "#{SCRIPT_DIR}/josh_forehead.jpg"
   IMAGE_TEST_START_BYTE = 741

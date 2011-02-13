@@ -7,3 +7,4 @@ bin/image_corrupter
 lib/image_corrupter.rb
 test/test_image_corrupter.rb
 test/josh_forehead.jpg
+test/corruption_text_small.txt

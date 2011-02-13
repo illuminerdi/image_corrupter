@@ -13,15 +13,30 @@ class ImageCorrupter
 
   Struct.new("InjectionPoint", :start, :value)
 
+  ##
+  # == General
+  # Constructs a new ImageCorrupter. Loads file data, analyzes the image, and
+  # parses any custom options.
+  #
+  # == Options
+  # Options affect the output of your image. They are immutable for the time being.
+  # Here are the currently-supported options:
+  # [random] If set to true, will determine the point of injection of the corruption randomly.
+  # [interval] The distance in bytes between occurrences of the corruption. Ignored if :random => true
+  # [occurrences] The number of times the corruption should occur
+  # [corruption_text] Either a string or array of strings that will be used for corruption.
+  # [corruption_file] A text file to be used for generating strings for corruption.
+  # [corruption_separator] If this is nil (default), will load the entire corruption_file as a single corruption string.
+  #                        If it's a string or regexp, will be used to split the corruption_file into a string array.
   def initialize(in_file, options = {})
-    @file_name = in_file
-    @file_bytes = open(@file_name).each_byte.to_a
-    @corrupted_file_bytes = []
-    @out_file_name = @file_name.gsub(/\.jpg/, "_corrupted.jpg")
-    analyze_photo
+    parse_file(in_file)
+    @out_file_name = @file_name.gsub(/\.jpg/i, "_corrupted.jpg")
+    analyze_image
     parse_options(options)
   end
 
+  ##
+  # Corrupts the file. Totally works.
   def corrupt
     @corrupted_file_bytes.replace(@file_bytes)
     injection_points.each {|p|
@@ -29,19 +44,28 @@ class ImageCorrupter
         p.value[i % p.start]
       }
     }
+    self
   end
 
+  ##
+  # Corrupts the file in place. Works for corrupting the same file more than once.
+  #--
+  # TODO: need to get this thing working properly. Needs a #reset method
   def corrupt!
-    corrupt
-    @file_bytes.replace(@corrupted_file_bytes)
+    @file_bytes.replace(corrupt.corrupted_file_bytes)
+    self
   end
 
+  ##
+  # Convenience method to create a new ImageCorruptor, corrupt the data, and write it out to a file
   def self.corrupt(in_file)
     corrupting = ImageCorrupter.new(in_file)
     corrupting.corrupt
     corrupting.to_file
   end
 
+  ##
+  # Writes out the current value of @corrupted_file_bytes into the file located at @out_file_name
   def to_file
     open(@out_file_name, "w") {|f|
       @corrupted_file_bytes.each {|b|
@@ -52,6 +76,12 @@ class ImageCorrupter
   end
 
   private
+
+    def parse_file(in_file)
+      @file_name = in_file
+      @file_bytes = open(@file_name).each_byte.to_a
+      @corrupted_file_bytes = []
+    end
 
     def injection_points
       step = @options[:interval]
@@ -85,7 +115,7 @@ class ImageCorrupter
       end
     end
 
-    def analyze_photo
+    def analyze_image
       @photo = {restart_points: []}
       file_bytes.each_with_index {|b,i|
         if b == 0xFF

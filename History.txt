@@ -1,6 +1,11 @@
 === 1.0.0 / 2011-02-11
 
-* 1 major enhancement
+* 6 major enhancement
 
   * Birthday!
+  * Absolutely destroys JPEGs
+  * Can be set up to glitch based on text given by user through instantiation or through external text file
+  * Can glitch once, or more than once
+  * Can glitch randomly
+  * Doesn't "really" corrupt the image, so you can open it again in your favorite image viewing app
 
